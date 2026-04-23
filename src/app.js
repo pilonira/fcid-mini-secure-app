@@ -12,7 +12,7 @@ app.use((req, res, next) => {
 });
 
 
-// "Base de datos" en memoria
+// "Base de datos" en memoriaapp.get('
 const tickets = [
   { id: 1, title: 'Error al iniciar sesión', description: 'No puedo acceder con mi usuario' },
   { id: 2, title: 'Fallo en el panel', description: 'El dashboard carga lentamente' }
@@ -48,6 +48,7 @@ app.get('/', (req, res) => {
         <form action="/comment" method="POST">
           <textarea name="comment" rows="4" cols="50" placeholder="Escribe un comentario"></textarea><br/>
           <button type="submit">Guardar comentario</button>
+          <input type="hidden" name="_csrf" value="${res.locals.csrfToken}">
         </form>
       </body>
     </html>
@@ -67,6 +68,7 @@ app.get('/login', (req, res) => {
           <label>Contraseña:</label>
           <input type="password" name="password" /><br/><br/>
           <button type="submit">Entrar</button>
+          <input type="hidden" name="_csrf" value="${res.locals.csrfToken}">
         </form>
         <p><a href="/">Volver</a></p>
       </body>
@@ -126,6 +128,7 @@ app.get('/ticket/new', (req, res) => {
           <label>Descripción:</label><br/>
           <textarea name="description" rows="4" cols="50"></textarea><br/><br/>
           <button type="submit">Guardar ticket</button>
+          <input type="hidden" name="_csrf" value="${res.locals.csrfToken}">
         </form>
         <p><a href="/">Volver</a></p>
       </body>
