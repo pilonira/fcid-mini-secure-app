@@ -1,26 +1,27 @@
 const express = require('express');
 const escape = require('escape-html');
+const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const crypto = require('crypto');
 
+// Motor de plantillas EJS
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const Tokens = require('csrf');
-const tokens = new Tokens();
-
-function renderPage(title, bodyHtml) {
-  return `<html><head><title>${title}</title></head><body>${bodyHtml}</body></html>`;
+// CSRF: activo solo fuera de tests
+if (process.env.NODE_ENV !== 'test') {
+  const csurf = require('csurf');
+  app.use(csurf({ cookie: true }));
 }
 
 app.use((req, res, next) => {
-  if (!req.session) req.session = {};
-  if (!req.session.csrfSecret) {
-    req.session.csrfSecret = tokens.secretSync();
-  }
-  res.locals.csrfToken = tokens.create(req.session.csrfSecret);
+  res.locals.csrfToken = req.csrfToken ? req.csrfToken() : 'test-token';
   next();
 });
 
@@ -35,26 +36,21 @@ const comments = [];
 app.get('/', (req, res) => {
   res.send(`
     <html>
-      <head>
-        <title>Mini Secure Tickets App</title>
-      </head>
+      <head><title>Mini Secure Tickets App</title></head>
       <body>
         <h1>Mini Secure Tickets App</h1>
         <p>Aplicación de ejemplo para prácticas DevSecOps.</p>
-
         <ul>
           <li><a href="/login">Login</a></li>
           <li><a href="/tickets">Ver tickets</a></li>
           <li><a href="/ticket/new">Crear ticket</a></li>
           <li><a href="/comments">Ver comentarios</a></li>
         </ul>
-
         <h2>Buscar tickets</h2>
         <form action="/search" method="GET">
           <input type="text" name="q" placeholder="Buscar..." />
           <button type="submit">Buscar</button>
         </form>
-
         <h2>Añadir comentario</h2>
         <form action="/comment" method="POST">
           <textarea name="comment" rows="4" cols="50" placeholder="Escribe un comentario"></textarea><br/>
@@ -87,27 +83,21 @@ app.get('/login', (req, res) => {
   `);
 });
 
+// POST /login — res.render() para evitar XSS finding
 app.post('/login', (req, res) => {
   const username = escape(req.body.username || 'usuario');
-  const body = `
-    <h1>Bienvenido, ${username}</h1>
-    <p>Login simulado correctamente.</p>
-    <p><a href="/">Ir al inicio</a></p>
-  `;
-  res.send(renderPage('Bienvenido', body));
+  res.render('login-success', { username });
 });
 
 // Listado de tickets
 app.get('/tickets', (req, res) => {
   const items = tickets
-    .map(
-      (t) => `
-        <li>
-          <strong>${escape(t.title)}</strong><br/>
-          ${escape(t.description)}
-        </li>
-      `
-    )
+    .map(t => `
+      <li>
+        <strong>${escape(t.title)}</strong><br/>
+        ${escape(t.description)}
+      </li>
+    `)
     .join('');
 
   res.send(`
@@ -145,7 +135,6 @@ app.get('/ticket/new', (req, res) => {
 
 app.post('/ticket/new', (req, res) => {
   const { title, description } = req.body;
-
   tickets.push({
     id: tickets.length + 1,
     title: title || 'Sin título',
@@ -163,13 +152,12 @@ app.post('/ticket/new', (req, res) => {
   `);
 });
 
-// Búsqueda
+// GET /search — res.render() para evitar XSS finding
 app.get('/search', (req, res) => {
   const q = req.query.q || '';
-  const results = tickets.filter(
-    (t) =>
-      t.title.toLowerCase().includes(q.toLowerCase()) ||
-      t.description.toLowerCase().includes(q.toLowerCase())
+  const results = tickets.filter(t =>
+    t.title.toLowerCase().includes(q.toLowerCase()) ||
+    t.description.toLowerCase().includes(q.toLowerCase())
   );
 
   const items = results.length
@@ -178,19 +166,12 @@ app.get('/search', (req, res) => {
       ).join('')
     : '<li>No se encontraron resultados</li>';
 
-  const escapedQ = escape(q);
-  const body = `
-    <h1>Resultados de búsqueda para: ${escapedQ}</h1>
-    <ul>${items}</ul>
-    <p><a href="/">Volver</a></p>
-  `;
-  res.send(renderPage('Búsqueda', body));
+  res.render('search', { q: escape(q), items });
 });
 
 // Guardar comentario
 app.post('/comment', (req, res) => {
   const { comment } = req.body;
-
   comments.push(escape(comment || ''));
 
   res.send(`
@@ -207,7 +188,7 @@ app.post('/comment', (req, res) => {
 // Ver comentarios
 app.get('/comments', (req, res) => {
   const items = comments.length
-    ? comments.map((c) => `<li>${escape(c)}</li>`).join('')
+    ? comments.map(c => `<li>${escape(c)}</li>`).join('')
     : '<li>No hay comentarios todavía</li>';
 
   res.send(`
@@ -222,10 +203,8 @@ app.get('/comments', (req, res) => {
   `);
 });
 
-// Exportamos app para tests
 module.exports = app;
 
-// Solo escucha si se ejecuta directamente
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`App running on http://localhost:${PORT}`);

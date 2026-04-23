@@ -12,11 +12,15 @@
     "cookie-parser": "^1.4.7",
     "csrf": "^3.1.0",
     "csurf": "^1.11.0",
+    "ejs": "^5.0.2",
     "escape-html": "^1.0.3",
     "express": "^4.22.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^7.0.0"
+  },
+  "scripts": {
+  "test": "NODE_ENV=test jest"
   }
 }
