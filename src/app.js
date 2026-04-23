@@ -1,11 +1,9 @@
 const express = require('express');
+const escape = require('escape-html');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const crypto = require('crypto');
-
-var cookieParser = require('cookie-parser')
-var bodyParser = require('body-parser')
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -13,17 +11,6 @@ app.use((req, res, next) => {
   res.locals.csrfToken = crypto.randomBytes(16).toString('hex');
   next();
 });
-app.use(cookieParser())
-
-var csrfProtection = csrf({
-    cookie: true
-})
-
-app.get('/form', csrfProtection, function(req, res) {
-    res.render('send', {
-        csrfToken: req.csrfToken()
-    })
-})
 
 // "Base de datos" en memoriaapp.get('
 const tickets = [
@@ -95,7 +82,7 @@ app.post('/login', (req, res) => {
     <html>
       <head><title>Bienvenido</title></head>
       <body>
-        <h1>Bienvenido, ${username || 'usuario'}</h1>
+        <h1>Bienvenido, ${escape(username || 'usuario')}</h1>
         <p>Login simulado correctamente.</p>
         <p><a href="/">Ir al inicio</a></p>
       </body>
@@ -109,8 +96,8 @@ app.get('/tickets', (req, res) => {
     .map(
       (t) => `
         <li>
-          <strong>${t.title}</strong><br/>
-          ${t.description}
+          <strong>${escape(t.title)}</strong><br/>
+          ${escape(t.description)}
         </li>
       `
     )
@@ -196,7 +183,7 @@ app.get('/search', (req, res) => {
     <html>
       <head><title>Búsqueda</title></head>
       <body>
-        <h1>Resultados de búsqueda para: ${q}</h1>
+        <h1>Resultados de búsqueda para: ${escape(q)}</h1>
         <ul>${items}</ul>
         <p><a href="/">Volver</a></p>
       </body>
@@ -224,7 +211,7 @@ app.post('/comment', (req, res) => {
 // Ver comentarios
 app.get('/comments', (req, res) => {
   const items = comments.length
-    ? comments.map((c) => `<li>${c}</li>`).join('')
+    ? comments.map((c) => `<li>${escape(c)}</li>`).join('')
     : '<li>No hay comentarios todavía</li>';
 
   res.send(`
