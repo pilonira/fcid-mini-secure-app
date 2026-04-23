@@ -8,10 +8,12 @@ const crypto = require('crypto');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const csrfToken = crypto.randomBytes(16).toString('hex');
-
 app.use((req, res, next) => {
-  res.locals.csrfToken = csrfToken;
+  if (!req.session) req.session = {};
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = crypto.randomBytes(16).toString('hex');
+  }
+  res.locals.csrfToken = req.session.csrfToken;
   next();
 });
 
@@ -80,16 +82,17 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const username = escape(req.body.username || 'usuario');
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.end(
-    '<html>' +
-    '<head><title>Bienvenido</title></head>' +
-    '<body>' +
-    '<h1>Bienvenido, ' + username + '</h1>' +
-    '<p>Login simulado correctamente.</p>' +
-    '<p><a href="/">Ir al inicio</a></p>' +
-    '</body></html>'
-  );
+
+  res.send(`
+    <html>
+      <head><title>Bienvenido</title></head>
+      <body>
+        <h1>Bienvenido, ${username}</h1>
+        <p>Login simulado correctamente.</p>
+        <p><a href="/">Ir al inicio</a></p>
+      </body>
+    </html>
+  `);
 });
 
 // Listado de tickets
@@ -170,10 +173,10 @@ app.get('/search', (req, res) => {
 
 const items = results.length
   ? results.map(t =>
-      '<li>' +
-      '<strong>' + escape(t.title) + '</strong><br/>' +
-      escape(t.description) +
-      '</li>'
+      `<li>
+        <strong>${escape(t.title)}</strong><br/>
+        ${escape(t.description)}
+      </li>`
     ).join('')
   : '<li>No se encontraron resultados</li>';
 
