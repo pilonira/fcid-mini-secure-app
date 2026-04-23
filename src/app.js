@@ -2,9 +2,15 @@ const express = require('express');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const crypto = require('crypto');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use((req, res, next) => {
+  res.locals.csrfToken = crypto.randomBytes(16).toString('hex');
+  next();
+});
+
 
 // "Base de datos" en memoria
 const tickets = [
