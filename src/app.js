@@ -79,17 +79,17 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const { username } = req.body;
-  res.send(`
-    <html>
-      <head><title>Bienvenido</title></head>
-      <body>
-        <h1>Bienvenido, ${escape(username || 'usuario')}</h1>
-        <p>Login simulado correctamente.</p>
-        <p><a href="/">Ir al inicio</a></p>
-      </body>
-    </html>
-  `);
+  const username = escape(req.body.username || 'usuario');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.end(
+    '<html>' +
+    '<head><title>Bienvenido</title></head>' +
+    '<body>' +
+    '<h1>Bienvenido, ' + username + '</h1>' +
+    '<p>Login simulado correctamente.</p>' +
+    '<p><a href="/">Ir al inicio</a></p>' +
+    '</body></html>'
+  );
 });
 
 // Listado de tickets
@@ -168,18 +168,14 @@ app.get('/search', (req, res) => {
       t.description.toLowerCase().includes(q.toLowerCase())
   );
 
-  const items = results.length
-    ? results
-        .map(
-          (t) => `
-            <li>
-              <strong>${escape(t.title)}</strong><br/>
-              ${escape(t.description)}
-            </li>
-          `
-        )
-        .join('')
-    : '<li>No se encontraron resultados</li>';
+const items = results.length
+  ? results.map(t =>
+      '<li>' +
+      '<strong>' + escape(t.title) + '</strong><br/>' +
+      escape(t.description) +
+      '</li>'
+    ).join('')
+  : '<li>No se encontraron resultados</li>';
 
   res.send(`
     <html>
@@ -197,7 +193,7 @@ app.get('/search', (req, res) => {
 app.post('/comment', (req, res) => {
   const { comment } = req.body;
 
-  comments.push(comment || '');
+  comments.push(escape(comment || ''));
 
   res.send(`
     <html>
