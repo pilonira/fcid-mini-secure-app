@@ -9,6 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "escape-html": "^1.0.3",
     "express": "^4.22.1"
   },
   "devDependencies": {

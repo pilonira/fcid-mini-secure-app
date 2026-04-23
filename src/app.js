@@ -74,7 +74,7 @@ app.post('/login', (req, res) => {
     <html>
       <head><title>Bienvenido</title></head>
       <body>
-        <h1>Bienvenido, ${username || 'usuario'}</h1>
+        <h1>Bienvenido, ${escape(username) || 'usuario'}</h1>
         <p>Login simulado correctamente.</p>
         <p><a href="/">Ir al inicio</a></p>
       </body>
@@ -100,7 +100,7 @@ app.get('/tickets', (req, res) => {
       <head><title>Tickets</title></head>
       <body>
         <h1>Listado de tickets</h1>
-        <ul>${items}</ul>
+        <ul>${escape(items)}</ul>
         <p><a href="/">Volver</a></p>
       </body>
     </html>
@@ -174,8 +174,8 @@ app.get('/search', (req, res) => {
     <html>
       <head><title>Búsqueda</title></head>
       <body>
-        <h1>Resultados de búsqueda para: ${q}</h1>
-        <ul>${items}</ul>
+        <h1>Resultados de búsqueda para: ${escape(q)}</h1>
+        <ul>${escape(items)}</ul>
         <p><a href="/">Volver</a></p>
       </body>
     </html>
@@ -210,7 +210,7 @@ app.get('/comments', (req, res) => {
       <head><title>Comentarios</title></head>
       <body>
         <h1>Comentarios</h1>
-        <ul>${items}</ul>
+        <ul>${escape(items)}</ul>
         <p><a href="/">Volver</a></p>
       </body>
     </html>
