@@ -8,12 +8,19 @@ const crypto = require('crypto');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+const Tokens = require('csrf');
+const tokens = new Tokens();
+
+function renderPage(title, bodyHtml) {
+  return `<html><head><title>${title}</title></head><body>${bodyHtml}</body></html>`;
+}
+
 app.use((req, res, next) => {
   if (!req.session) req.session = {};
-  if (!req.session.csrfToken) {
-    req.session.csrfToken = crypto.randomBytes(16).toString('hex');
+  if (!req.session.csrfSecret) {
+    req.session.csrfSecret = tokens.secretSync();
   }
-  res.locals.csrfToken = req.session.csrfToken;
+  res.locals.csrfToken = tokens.create(req.session.csrfSecret);
   next();
 });
 
@@ -82,17 +89,12 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const username = escape(req.body.username || 'usuario');
-
-  res.send(`
-    <html>
-      <head><title>Bienvenido</title></head>
-      <body>
-        <h1>Bienvenido, ${username}</h1>
-        <p>Login simulado correctamente.</p>
-        <p><a href="/">Ir al inicio</a></p>
-      </body>
-    </html>
-  `);
+  const body = `
+    <h1>Bienvenido, ${username}</h1>
+    <p>Login simulado correctamente.</p>
+    <p><a href="/">Ir al inicio</a></p>
+  `;
+  res.send(renderPage('Bienvenido', body));
 });
 
 // Listado de tickets
@@ -164,32 +166,25 @@ app.post('/ticket/new', (req, res) => {
 // Búsqueda
 app.get('/search', (req, res) => {
   const q = req.query.q || '';
-
   const results = tickets.filter(
     (t) =>
       t.title.toLowerCase().includes(q.toLowerCase()) ||
       t.description.toLowerCase().includes(q.toLowerCase())
   );
 
-const items = results.length
-  ? results.map(t =>
-      `<li>
-        <strong>${escape(t.title)}</strong><br/>
-        ${escape(t.description)}
-      </li>`
-    ).join('')
-  : '<li>No se encontraron resultados</li>';
+  const items = results.length
+    ? results.map(t =>
+        `<li><strong>${escape(t.title)}</strong><br/>${escape(t.description)}</li>`
+      ).join('')
+    : '<li>No se encontraron resultados</li>';
 
-  res.send(`
-    <html>
-      <head><title>Búsqueda</title></head>
-      <body>
-        <h1>Resultados de búsqueda para: ${escape(q)}</h1>
-        <ul>${items}</ul>
-        <p><a href="/">Volver</a></p>
-      </body>
-    </html>
-  `);
+  const escapedQ = escape(q);
+  const body = `
+    <h1>Resultados de búsqueda para: ${escapedQ}</h1>
+    <ul>${items}</ul>
+    <p><a href="/">Volver</a></p>
+  `;
+  res.send(renderPage('Búsqueda', body));
 });
 
 // Guardar comentario
