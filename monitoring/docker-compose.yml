@@ -8,6 +8,9 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    secutiry_opt:
+      - no-new-privileges: true
+      
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -16,6 +19,8 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   grafana_data:
