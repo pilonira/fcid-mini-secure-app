@@ -1,11 +1,15 @@
 const express = require('express');
-const escape = require('escape-html');
+const csurf = require('csurf');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use(csurf());
+app.set('view engine', 'ejs');
+res.render('welcome', { username });
 
 // "Base de datos" en memoria
 const tickets = [
