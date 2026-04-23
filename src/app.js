@@ -4,13 +4,26 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const crypto = require('crypto');
 
+var cookieParser = require('cookie-parser')
+var bodyParser = require('body-parser')
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use((req, res, next) => {
   res.locals.csrfToken = crypto.randomBytes(16).toString('hex');
   next();
 });
+app.use(cookieParser())
 
+var csrfProtection = csrf({
+    cookie: true
+})
+
+app.get('/form', csrfProtection, function(req, res) {
+    res.render('send', {
+        csrfToken: req.csrfToken()
+    })
+})
 
 // "Base de datos" en memoriaapp.get('
 const tickets = [
