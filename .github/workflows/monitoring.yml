@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - desarrollo
-  paths:
-    - 'monitoring/**'
-    - '.github/workflows/monitoring.yml'
+    paths:
+      - 'monitoring/**'
+      - '.github/workflows/monitoring.yml'
 jobs:
   deploy-monitoring:
     runs-on: self-hosted
