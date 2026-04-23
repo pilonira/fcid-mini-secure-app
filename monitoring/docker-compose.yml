@@ -8,8 +8,8 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    secutiry_opt:
-      - no-new-privileges: true
+    security_opt:
+      - no-new-privileges:true
       
   grafana:
     image: grafana/grafana:latest
