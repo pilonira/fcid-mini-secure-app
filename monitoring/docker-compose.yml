@@ -10,7 +10,8 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     security_opt:
       - no-new-privileges:true
-            
+    read_only: true
+                
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -21,6 +22,7 @@ services:
       - grafana_data:/var/lib/grafana
     security_opt:
       - no-new-privileges:true
-      
+    read_only: true
+          
 volumes:
   grafana_data:
