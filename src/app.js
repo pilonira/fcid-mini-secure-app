@@ -7,12 +7,14 @@ const crypto = require('crypto');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+const csrfToken = crypto.randomBytes(16).toString('hex');
+
 app.use((req, res, next) => {
-  res.locals.csrfToken = crypto.randomBytes(16).toString('hex');
+  res.locals.csrfToken = csrfToken;
   next();
 });
 
-// "Base de datos" en memoriaapp.get('
 const tickets = [
   { id: 1, title: 'Error al iniciar sesión', description: 'No puedo acceder con mi usuario' },
   { id: 2, title: 'Fallo en el panel', description: 'El dashboard carga lentamente' }
@@ -171,8 +173,8 @@ app.get('/search', (req, res) => {
         .map(
           (t) => `
             <li>
-              <strong>${t.title}</strong><br/>
-              ${t.description}
+              <strong>${escape(t.title)}</strong><br/>
+              ${escape(t.description)}
             </li>
           `
         )
