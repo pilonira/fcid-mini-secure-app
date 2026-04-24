@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const csrf = require('csurf');
 const helmet = require('helmet');
+const session = require('express-session');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,6 +45,17 @@ app.use((req, res, next) => {
 });
 
 app.use(cookieParser());
+
+app.use(session({
+  secret: 'supersecret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false
+  }
+}));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(csrf({
@@ -117,6 +129,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
   const username = escape(req.body.username || 'usuario');
+  req.session.user = username;
   res.render('login-success', { username });
 });
 
