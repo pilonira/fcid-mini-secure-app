@@ -10,7 +10,9 @@ const PORT = process.env.PORT || 3001;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+const csurf = require('csurf');
 app.use(cookieParser());
+app.use(csurf({ cookie: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -21,7 +23,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken ? req.csrfToken() : 'test-token';
+  res.locals.csrfToken = req.csrfToken();
   next();
 });
 
@@ -160,13 +162,7 @@ app.get('/search', (req, res) => {
     t.description.toLowerCase().includes(q.toLowerCase())
   );
 
-  const items = results.length
-    ? results.map(t =>
-        `<li><strong>${escape(t.title)}</strong><br/>${escape(t.description)}</li>`
-      ).join('')
-    : '<li>No se encontraron resultados</li>';
-
-  res.render('search', { q: escape(q), items });
+  res.render('search', { q: escape(q), results });
 });
 
 // Guardar comentario

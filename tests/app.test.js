@@ -1,4 +1,9 @@
 const request = require('supertest');
+// Deshabilita CSRF para tests
+jest.mock('csurf', () => () => (req, res, next) => {
+  req.csrfToken = () => 'test-token';
+  next();
+});
 const app = require('../src/app');
 
 describe('Mini Secure Tickets App', () => {
