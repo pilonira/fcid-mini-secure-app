@@ -39,7 +39,7 @@ app.use(helmet({
 
 // Cache-Control para evitar contenido cacheable sensible
 app.use((req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 'private');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
   next();
 });
@@ -243,6 +243,18 @@ app.use((req, res) => {
       <body><h1>404 - Página no encontrada</h1></body>
     </html>
   `);
+});
+
+app.use((err, req, res, next) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    return res.status(403).send(`
+      <html>
+        <head><title>Forbidden</title></head>
+        <body><h1>403 - Acceso denegado</h1></body>
+      </html>
+    `);
+  }
+  next(err);
 });
 
 module.exports = app;
