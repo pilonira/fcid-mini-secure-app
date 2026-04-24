@@ -24,6 +24,11 @@ app.use(helmet({
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
+      fontSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      mediaSrc: ["'none'"],
+      workerSrc: ["'none'"],
+      manifestSrc: ["'self'"],
     }
   },
   frameguard: { action: 'deny' },
