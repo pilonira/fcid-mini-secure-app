@@ -3,6 +3,7 @@ const escape = require('escape-html');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const csrf = require('csurf');
+const helmet = require('helmet');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -10,10 +11,42 @@ const PORT = process.env.PORT || 3001;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+app.disable('x-powered-by');
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    }
+  },
+  frameguard: { action: 'deny' },
+  crossOriginEmbedderPolicy: true,
+}));
+
+// Cache-Control para evitar contenido cacheable sensible
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  next();
+});
+
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(csrf({ cookie: true }));
+app.use(csrf({
+  cookie: {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production'
+  }
+}));
 
 app.use((req, res, next) => {
   res.locals.csrfToken = req.csrfToken();
