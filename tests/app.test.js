@@ -1,9 +1,11 @@
 const request = require('supertest');
-// Deshabilita CSRF para tests
+
+// Mock csurf ANTES de importar app para que los tests no fallen por token inválido
 jest.mock('csurf', () => () => (req, res, next) => {
   req.csrfToken = () => 'test-token';
   next();
 });
+
 const app = require('../src/app');
 
 describe('Mini Secure Tickets App', () => {
@@ -24,7 +26,6 @@ describe('Mini Secure Tickets App', () => {
       .post('/ticket/new')
       .type('form')
       .send({ title: 'Ticket de prueba', description: 'Descripción de prueba' });
-
     expect(res.statusCode).toBe(200);
     expect(res.text).toContain('Ticket guardado correctamente');
   });

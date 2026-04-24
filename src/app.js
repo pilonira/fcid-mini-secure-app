@@ -2,25 +2,18 @@ const express = require('express');
 const escape = require('escape-html');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Motor de plantillas EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-const csurf = require('csurf');
 app.use(cookieParser());
-app.use(csurf({ cookie: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// CSRF: activo solo fuera de tests
-if (process.env.NODE_ENV !== 'test') {
-  const csurf = require('csurf');
-  app.use(csurf({ cookie: true }));
-}
+app.use(csrf({ cookie: true }));
 
 app.use((req, res, next) => {
   res.locals.csrfToken = req.csrfToken();
@@ -34,7 +27,6 @@ const tickets = [
 
 const comments = [];
 
-// Página principal
 app.get('/', (req, res) => {
   res.send(`
     <html>
@@ -64,7 +56,6 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Login simple
 app.get('/login', (req, res) => {
   res.send(`
     <html>
@@ -85,13 +76,11 @@ app.get('/login', (req, res) => {
   `);
 });
 
-// POST /login — res.render() para evitar XSS finding
 app.post('/login', (req, res) => {
   const username = escape(req.body.username || 'usuario');
   res.render('login-success', { username });
 });
 
-// Listado de tickets
 app.get('/tickets', (req, res) => {
   const items = tickets
     .map(t => `
@@ -114,7 +103,6 @@ app.get('/tickets', (req, res) => {
   `);
 });
 
-// Formulario nuevo ticket
 app.get('/ticket/new', (req, res) => {
   res.send(`
     <html>
@@ -154,18 +142,15 @@ app.post('/ticket/new', (req, res) => {
   `);
 });
 
-// GET /search — res.render() para evitar XSS finding
 app.get('/search', (req, res) => {
   const q = req.query.q || '';
   const results = tickets.filter(t =>
     t.title.toLowerCase().includes(q.toLowerCase()) ||
     t.description.toLowerCase().includes(q.toLowerCase())
   );
-
   res.render('search', { q: escape(q), results });
 });
 
-// Guardar comentario
 app.post('/comment', (req, res) => {
   const { comment } = req.body;
   comments.push(escape(comment || ''));
@@ -181,7 +166,6 @@ app.post('/comment', (req, res) => {
   `);
 });
 
-// Ver comentarios
 app.get('/comments', (req, res) => {
   const items = comments.length
     ? comments.map(c => `<li>${escape(c)}</li>`).join('')
