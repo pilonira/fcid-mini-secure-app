@@ -29,6 +29,7 @@ app.use(helmet({
       mediaSrc: ["'none'"],
       workerSrc: ["'none'"],
       manifestSrc: ["'self'"],
+      navigateTo: ["'self'"],
     }
   },
   frameguard: { action: 'deny' },
@@ -217,6 +218,15 @@ app.get('/comments', (req, res) => {
         <ul>${items}</ul>
         <p><a href="/">Volver</a></p>
       </body>
+    </html>
+  `);
+});
+
+app.use((req, res) => {
+  res.status(404).send(`
+    <html>
+      <head><title>Not Found</title></head>
+      <body><h1>404 - Página no encontrada</h1></body>
     </html>
   `);
 });
